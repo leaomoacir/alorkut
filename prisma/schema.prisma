@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Community {
+  id        String @id @default(uuid())
+  title     String
+  imageUrl  String
+  paginaUrl String
+  creatorId String?
+}
+
+model Scrap {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  text        String
+  createdAt   DateTime @default(now())
+}
+
+model CachedProfile {
+  username    String   @id
+  avatarUrl   String
+  totalStars  Int      @default(0)
+  totalRepos  Int      @default(0)
+  reposData   String
+  updatedAt   DateTime @updatedAt
+}
+
+model Follow {
+  id          String @id @default(uuid())
+  followerId  String 
+  followingId String 
+}
+
+model BadgeVote {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  badgeType   String   // 'trusty', 'cool', 'sexy'
+  createdAt   DateTime @default(now())
+
+  @@unique([senderId, receiverId, badgeType])
+}
+
+model Testimonial {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  text        String
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model CommunityTopic {
+  id          String   @id @default(uuid())
+  title       String
+  authorId    String
+  communityId String
+  createdAt   DateTime @default(now())
+}
+
+model CommunityPost {
+  id          String   @id @default(uuid())
+  text        String
+  authorId    String
+  topicId     String
+  createdAt   DateTime @default(now())
+}

@@ -73,12 +73,10 @@ export default function Home(props) {
   const [comunidadesImage, setComunidadesImage] = React.useState([]);
   // URL COMUNIDADES
   const [comunidadesUrl, setComunidadesUrl] = React.useState([]);
-  // POST
-  const [posts, setPosts] = React.useState([]);
-  // NOME POST
-  const [nameValue, setNameValue] = React.useState('');
-  // TEXTO POST
-  const [textValue, setTextValue] = React.useState('');
+  // POST/FEED
+  const [feed, setFeed] = React.useState([]);
+  // SEGUIR USUÁRIO
+  const [followUserInput, setFollowUserInput] = React.useState('');
 
   React.useEffect(function () {
     const urlNumeros = `https://api.github.com/users/${githubUser}`;
@@ -96,60 +94,42 @@ export default function Home(props) {
       })
 
     const urlFollowing = `https://api.github.com/users/${githubUser}/following`
-    fetch(urlFollowing)
-      .then(function (respostaDoServidor) {
-        return respostaDoServidor.json();
-      })
-      .then(function (respostaCompleta) {
-        setSeguindo(respostaCompleta);
-      })
-    // API DATOCMS GraphQL Comunidades 
-    fetch('https://graphql.datocms.com/', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'd9935724b7a2faf1e7d9809795a09a',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        "query": `query {
-        allCommunities {
-          id
-          title
-          imageUrl
-          paginaUrl
-        }
-      }` })
-    })
+    
+    Promise.all([
+      fetch(urlFollowing).then(r => r.json()),
+      fetch(`/api/followers?followerId=${githubUser}`).then(r => r.json())
+    ]).then(([githubFollowing, localFollowingResponse]) => {
+      const localFollowing = localFollowingResponse.data?.following || [];
+      const localFormatted = localFollowing.map(f => ({
+          id: f.id,
+          login: f.followingId,
+          html_url: `https://github.com/${f.followingId}`,
+          avatar_url: `https://github.com/${f.followingId}.png`
+      }));
+      const allFollowing = [...localFormatted, ...githubFollowing];
+      const uniqueFollowing = Array.from(new Map(allFollowing.map(item => [item.login, item])).values());
+      setSeguindo(uniqueFollowing);
+    }).catch((err) => {
+      console.error("Erro ao carregar seguindo:", err);
+    });
+    // API Própria - Comunidades
+    fetch('/api/comunidades')
       .then((resposta) => resposta.json())
       .then((respostaCompleta) => {
-        const comunidadesVindasDoDato = respostaCompleta.data.allCommunities;
-        // console.log(comunidadesVindasDoDato);
-        setComunidades(comunidadesVindasDoDato);
+        const comunidadesVindasDaAPI = respostaCompleta.data?.allCommunities || [];
+        setComunidades(comunidadesVindasDaAPI);
       })
-    // API DATOCMS GraphQL Post 
-    fetch('https://graphql.datocms.com/', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'd9935724b7a2faf1e7d9809795a09a',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        "query": `query {
-          allPosts {
-            id
-            name
-            text
-          }
-        }` })
-    })
+      .catch((err) => {
+        console.error("Erro ao carregar comunidades:", err);
+      });
+    // Feed
+    fetch(`/api/feed?userId=${githubUser}`)
       .then((resposta) => resposta.json())
-      .then((respostaCompletaPost) => {
-        const postVindosDoDato = respostaCompletaPost.data.allPosts;
-        // console.log(postVindosDoDato);
-        setPosts(postVindosDoDato);
-      })
+      .then((respostaCompleta) => {
+        if(respostaCompleta.data) {
+           setFeed(respostaCompleta.data);
+        }
+      });
   }, [])
 
   return (
@@ -173,11 +153,17 @@ export default function Home(props) {
             <form onSubmit={function handleCriaComunidade(e) {
               e.preventDefault();
               const dadosDoForm = new FormData(e.target);
+              
+              if (!dadosDoForm.get('title') || !dadosDoForm.get('url')) {
+                alert('Preencha os campos obrigatórios!');
+                return;
+              }
 
               const comunidade = {
                 title: dadosDoForm.get('title'),
                 imageUrl: dadosDoForm.get('image'),
-                paginaUrl: dadosDoForm.get('url')
+                paginaUrl: dadosDoForm.get('url'),
+                creatorId: githubUser
               }
               fetch('/api/comunidades', {
                 method: 'POST',
@@ -192,7 +178,7 @@ export default function Home(props) {
                   const comunidade = dados.registroCriado;
                   const comunidadesAtualizadas = [...comunidades, comunidade]
                   setComunidades(comunidadesAtualizadas);
-                  setcomunidadesTitle('');
+                  setComunidadesTitle('');
                   setComunidadesImage('');
                   setComunidadesUrl('');
                 })
@@ -229,84 +215,50 @@ export default function Home(props) {
           </Box>
 
           <Box>
-            <h2 className="subTitle">Deixe seu comentario</h2>
-            <form onSubmit={function handleCriaPost(e) {
+            <h2 className="subTitle">Encontrar e Seguir Usuários</h2>
+            <form onSubmit={function handleFollowUser(e) {
               e.preventDefault();
               const dadosDoForm = new FormData(e.target);
-
-              const post = {
-                name: dadosDoForm.get('name'),
-                text: dadosDoForm.get('text'),
+              const targetUser = dadosDoForm.get('followingId');
+              if (!targetUser) {
+                alert('Digite um usuário do GitHub para buscar!');
+                return;
               }
-              fetch('/api/post', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(post),
-              })
-                .then(async (response) => {
-                  const dadosPost = await response.json();
-                  // console.log(dados.registroCriado);
-                  const post = dadosPost.registroCriado;
-                  const postAtualizados = [post, ...posts]
-                  setPosts(postAtualizados);
-                  setNameValue('');
-                  setTextValue('');
-                })
+
+              window.location.href = `/profile/${targetUser}`;
             }}>
               <div>
                 <CustomizedInput
-                  placeholder="Usuário Github"
-                  name="name"
-                  aria-label="Usuário Github"
-                  value={nameValue}
-                  onValueChange={setNameValue}
+                  placeholder="Nome de usuário do GitHub"
+                  name="followingId"
+                  aria-label="Nome de usuário do GitHub"
+                  value={followUserInput}
+                  onValueChange={setFollowUserInput}
                 />
               </div>
-              <div>
-                <CustomizedInput
-                  placeholder="Deixei seu comentario"
-                  name="text"
-                  aria-label="Deixei seu comentario"
-                  value={textValue}
-                  onValueChange={setTextValue}
-                />
-              </div>
-              {/* <input
-                  placeholder="Usuário Github"
-                  name="name"
-                  aria-label="Usuário Github"
-                  value={nameValue}
-                  type="text"
-                  onChange={e => setNameValue(e.target.value)}
-                  required
-                /> */}
-              <button type="submit" aria-label="Criar comentario" style={{ background: '#2E7BB4' }} >
-                Criar comentario
+              <button type="submit" aria-label="Buscar Perfil" style={{ background: '#2E7BB4' }} >
+                Buscar Perfil
               </button>
             </form>
+            <Box>
+            <h2 className="subTitle">Feed de Atualizações (Scraps)</h2>
+            {feed.length === 0 ? (
+                <p>Nenhuma atualização ainda.</p>
+            ) : (
+                <ul style={{ listStyle: 'none' }}>
+                  {feed.map(scrap => (
+                    <li key={scrap.id} style={{ background: '#f9f9f9', padding: '12px', borderRadius: '8px', marginBottom: '12px' }}>
+                      <strong><a href={`/profile/${scrap.senderId}`}>{scrap.senderId}</a></strong> escreveu no mural de <strong><a href={`/profile/${scrap.receiverId}`}>{scrap.receiverId}</a></strong>:
+                      <p style={{ marginTop: '8px', color: '#333' }}>{scrap.text}</p>
+                      <small style={{ color: '#999' }}>{new Date(scrap.createdAt).toLocaleString()}</small>
+                    </li>
+                  ))}
+                </ul>
+            )}
+          </Box>
           </Box>
 
-          <PostBox>
-            <h2 className="smallTitle">Comentarios ({posts.length})</h2>
 
-            <ul>
-              {posts.map((itemAtual) => {
-                return (
-                  <li key={itemAtual.id}>
-                    <a href={`https://github.com/${itemAtual.name}`} target="_blank" rel="noopener noreferrer" title="Site do usuário">
-                      <img src={`https://github.com/${itemAtual.name}.png`} alt="Foto usuário" />
-                    </a>
-                    <div style={{ flexGrow: '2' }}>
-                      <span>@{itemAtual.name}</span>
-                      <p>{itemAtual.text}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </PostBox>
 
         </div>
 
@@ -315,18 +267,24 @@ export default function Home(props) {
           <ProfileRelationsBoxWrapper>
             <h2 className="smallTitle">Comunidades ({comunidades.length})</h2>
 
-            <ul>
-              {comunidades.slice(0, 6).map((itemAtual) => {
-                return (
-                  <li key={itemAtual.id}>
-                    <a href={itemAtual.paginaUrl} target="_blank" rel="noopener noreferrer" title="Site da comunidade">
-                      <img src={itemAtual.imageUrl} alt="Capa da comunidade" />
-                      <span>{itemAtual.title}</span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
+            {comunidades.length === 0 ? (
+              <p style={{ textAlign: 'center', padding: '10px 0', color: '#999' }}>
+                Nenhuma comunidade ainda. Configure seu DatoCMS!
+              </p>
+            ) : (
+              <ul>
+                {comunidades.slice(0, 6).map((itemAtual) => {
+                  return (
+                    <li key={itemAtual.id}>
+                      <a href={itemAtual.paginaUrl} target="_blank" rel="noopener noreferrer" title="Site da comunidade">
+                        <img src={itemAtual.imageUrl} alt="Capa da comunidade" />
+                        <span>{itemAtual.title}</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             <hr />
             <p>
               <a className="boxLink" href={`/comunidades`} >
@@ -358,21 +316,6 @@ export async function getServerSideProps(context) {
   }
 
   const token = cookies.USER_TOKEN;
-  const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
-    headers: {
-      Authorization: token
-    }
-  })
-    .then((resposta) => resposta.json())
-
-  // if(!isAuthenticated) {
-  //   return {
-  //     redirect: {
-  //       destination: '/login',
-  //       permanent: false,
-  //     }
-  //   }
-  // }
 
   const { githubUser } = jwt.decode(token);
   return {

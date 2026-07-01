@@ -33,31 +33,30 @@ export default function menuComunidades(props) {
     const [comunidades, setComunidades] = React.useState([]);
 
     React.useEffect(function () {
-        // API DATOCMS GraphQL Comunidades 
-        fetch('https://graphql.datocms.com/', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'd9935724b7a2faf1e7d9809795a09a',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-                "query": `query {
-            allCommunities {
-            id
-            title
-            imageUrl
-            paginaUrl
-            }
-        }` })
-        })
+        // API Própria - Comunidades
+        fetch('/api/comunidades')
             .then((resposta) => resposta.json())
             .then((respostaCompleta) => {
-                const comunidadesVindasDoDato = respostaCompleta.data.allCommunities;
-                // console.log(comunidadesVindasDoDato);
-                setComunidades(comunidadesVindasDoDato);
+                const comunidadesVindasDaAPI = respostaCompleta.data?.allCommunities || [];
+                setComunidades(comunidadesVindasDaAPI);
             })
+            .catch((err) => {
+                console.error("Erro ao carregar comunidades:", err);
+            });
     }, [])
+
+    const handleDelete = (id) => {
+        if (!confirm('Deseja realmente excluir esta comunidade?')) return;
+        fetch(`/api/comunidades?id=${id}&creatorId=${githubUser}`, {
+            method: 'DELETE'
+        }).then(res => {
+            if(res.ok) {
+                setComunidades(comunidades.filter(c => c.id !== id));
+            } else {
+                alert('Erro ao excluir ou você não tem permissão.');
+            }
+        });
+    }
 
     return (
         <>
@@ -73,18 +72,27 @@ export default function menuComunidades(props) {
                     <ProfileRelationsBoxWrapper>
                         <h2 className="smallTitle">Comunidades ({comunidades.length})</h2>
 
-                        <ul>
-                            {comunidades.map((itemAtual) => {
-                                return (
-                                    <li key={itemAtual.id}>
-                                        <a href={itemAtual.paginaUrl} target="_blank" rel="noopener noreferrer" title="Site da comunidade" style={{ height: '200px', width: '100%' }} >
-                                            <img src={itemAtual.imageUrl} alt="Capa da comunidade" />
-                                            <span style={{ fontSize: '16px' }}>{itemAtual.title}</span>
-                                        </a>
-                                    </li>
-                                );
-                            })}
-                        </ul>
+                        {comunidades.length === 0 ? (
+                            <p style={{ textAlign: 'center', padding: '20px 0', color: '#999' }}>
+                                Nenhuma comunidade encontrada. Configure seu DatoCMS!
+                            </p>
+                        ) : (
+                            <ul>
+                                {comunidades.map((itemAtual) => {
+                                    return (
+                                        <li key={itemAtual.id} style={{ position: 'relative' }}>
+                                            <a href={`/comunidades/${itemAtual.id}`} title="Fórum da comunidade" style={{ height: '200px', width: '100%' }} >
+                                                <img src={itemAtual.imageUrl} alt="Capa da comunidade" />
+                                                <span style={{ fontSize: '16px' }}>{itemAtual.title}</span>
+                                            </a>
+                                            {itemAtual.creatorId === githubUser && (
+                                                <button onClick={() => handleDelete(itemAtual.id)} style={{ position: 'absolute', top: 5, right: 5, background: 'red', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '5px' }}>Excluir</button>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
                     </ProfileRelationsBoxWrapper>
                 </div>
 
@@ -106,21 +114,6 @@ export async function getServerSideProps(context) {
     }
 
     const token = cookies.USER_TOKEN;
-    const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
-        headers: {
-            Authorization: token
-        }
-    })
-        .then((resposta) => resposta.json())
-
-    // if(!isAuthenticated) {
-    //   return {
-    //     redirect: {
-    //       destination: '/login',
-    //       permanent: false,
-    //     }
-    //   }
-    // }
 
     const { githubUser } = jwt.decode(token);
     return {
