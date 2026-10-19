@@ -24,7 +24,20 @@ export default async function followersHandler(request, response) {
     const { followingId } = request.query
     if (!followingId) return response.status(400).json({ error: 'Missing params' })
     await prisma.follow.deleteMany({
-      where: { followerId: me, followingId },
+      where: {
+        OR: [
+          { followerId: me, followingId },
+          { followerId: followingId, followingId: me },
+        ],
+      },
+    })
+    await prisma.friendRequest.deleteMany({
+      where: {
+        OR: [
+          { fromId: me, toId: followingId },
+          { fromId: followingId, toId: me },
+        ],
+      },
     })
     return response.status(200).json({ success: true })
   }

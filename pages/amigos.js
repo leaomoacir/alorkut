@@ -32,7 +32,8 @@ export default function menuAmigos(props) {
     <Layout githubUser={githubUser}>
       <Box>
         <h1 className="title">Pedidos de amizade</h1>
-        {incoming.length === 0 && <p>Nenhum pedido pendente.</p>}
+        <p>No Orkut a amizade ia e voltava. Aceite quem voce conhece de verdade.</p>
+        {incoming.length === 0 && <p>Nenhum pedido pendente. Visite perfis e envie um convite.</p>}
         {incoming.map((req) => (
           <div key={req.id} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
             <img src={`https://github.com/${req.fromId}.png`} alt={req.fromId} style={{ width: 32, height: 32, borderRadius: 8 }} />

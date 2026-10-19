@@ -82,9 +82,9 @@ export default function LoginScreen() {
         <div className="loginScreen" style={{ background: 'rgba(255, 255, 255, 0.92)', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '20px' }}>
           <section className="logoArea">
             <img src="https://alurakut.vercel.app/logo.svg" alt="Logo Orkut" />
-            <p><strong>Prova de posse:</strong> so entra quem controla o GitHub</p>
-            <p>Cole o codigo na bio ou em um gist publico. Sem isso, ninguem edita o seu perfil.</p>
-            <p>Depois de logado, recados, comunidades e configuracoes ficam no seu nome.</p>
+            <p><strong>Conecte-se aos seus amigos</strong> e acompanhe comunidades, recados e depoimentos.</p>
+            <p><strong>Prova de posse:</strong> so entra quem controla o GitHub. Cole o codigo na bio ou em um gist publico.</p>
+            <p>Sem isso ninguem edita o seu perfil, manda recado no seu nome ou muda suas configuracoes.</p>
           </section>
           <section className="formArea">
             <div className="box">
@@ -147,6 +147,7 @@ export default function LoginScreen() {
             </div>
             <footer className="box" style={{ marginTop: '16px', textAlign: 'center' }}>
               <p>Nao da mais para entrar digitando o nick de outra pessoa.</p>
+              <p style={{ marginTop: 8, fontSize: 12 }}>Token: use um PAT classico com leitura do perfil. Nao armazenamos a chave.</p>
             </footer>
           </section>
           <footer className="footerArea">

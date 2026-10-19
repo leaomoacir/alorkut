@@ -3,6 +3,7 @@ import { withAuth } from '../../src/lib/auth'
 import Layout from '../../src/components/Layout'
 import Box from '../../src/components/Box'
 import { ProfileRelationsBoxWrapper } from '../../src/components/ProfileRelations'
+import { GIFT_CATALOG, giftMeta } from '../../src/lib/gifts'
 
 function BadgeIcon({ type, count, hasVoted, onToggle }) {
   const icons = { trusty: 'C', cool: 'L', sexy: 'S' }
@@ -34,6 +35,8 @@ export default function ProfilePage(props) {
   const [photos, setPhotos] = React.useState([])
   const [pendingRequest, setPendingRequest] = React.useState(false)
   const [gifts, setGifts] = React.useState([])
+  const [giftType, setGiftType] = React.useState('coracao')
+  const [giftMessage, setGiftMessage] = React.useState('')
 
   React.useEffect(() => {
     Promise.all([
@@ -43,11 +46,12 @@ export default function ProfilePage(props) {
       fetch(`/api/badges?receiverId=${targetUser}&loggedUser=${loggedUser}`).then((r) => r.json()),
       fetch(`/api/testimonials?receiverId=${targetUser}`).then((r) => r.json()),
       fetch(`/api/followers?followerId=${targetUser}`).then((r) => r.json()),
+      fetch(`/api/members?userId=${targetUser}`).then((r) => r.json()),
       fetch('/api/comunidades').then((r) => r.json()),
       fetch(`/api/albums?ownerId=${targetUser}`).then((r) => r.json()),
       fetch(`/api/gifts?userId=${targetUser}`).then((r) => r.json()),
       fetch('/api/friends').then((r) => r.json()),
-    ]).then(([followersData, profileDataRes, scrapsRes, badgesRes, testimonialsRes, friendsRes, comRes, albumsRes, giftsRes, myFriends]) => {
+    ]).then(([followersData, profileDataRes, scrapsRes, badgesRes, testimonialsRes, friendsRes, membershipsRes, comRes, albumsRes, giftsRes, myFriends]) => {
       const follows = followersData.data?.following || []
       setIsFollowing(follows.some((f) => f.followingId === targetUser))
       if (profileDataRes.data) setProfileData(profileDataRes.data)
@@ -63,7 +67,9 @@ export default function ProfilePage(props) {
         avatar_url: `https://github.com/${f.followingId}.png`,
       }))
       setFriends(localFriends)
-      if (comRes.data?.allCommunities) setCommunities(comRes.data.allCommunities)
+      const mine = (membershipsRes.data || []).map((m) => m.communityId)
+      const all = comRes.data?.allCommunities || []
+      setCommunities(all.filter((c) => mine.includes(c.id)))
       const allPhotos = (albumsRes.data || []).flatMap((a) => a.photos || [])
       setPhotos(allPhotos)
       setGifts(giftsRes.data || [])
@@ -115,25 +121,34 @@ export default function ProfilePage(props) {
         <>
           <Box>
             <h2 className="smallTitle">Depoimentos ({testimonials.length})</h2>
-            <form onSubmit={(e) => {
-              e.preventDefault()
-              if (!testimonialText) return
-              fetch('/api/testimonials', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ receiverId: targetUser, text: testimonialText }),
-              }).then((res) => res.json()).then((data) => {
-                setTestimonials([data.data, ...testimonials])
-                setTestimonialText('')
-              })
-            }}>
-              <input type="text" value={testimonialText} onChange={(e) => setTestimonialText(e.target.value)} placeholder="Escreva um depoimento..." />
-              <button type="submit">Enviar Depoimento</button>
-            </form>
+            {loggedUser !== targetUser && (
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                if (!testimonialText) return
+                fetch('/api/testimonials', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ receiverId: targetUser, text: testimonialText }),
+                }).then((res) => res.json()).then(() => {
+                  setTestimonialText('')
+                  alert('Depoimento enviado. O dono do perfil precisa aprovar para aparecer no mural.')
+                })
+              }}>
+                <input type="text" value={testimonialText} onChange={(e) => setTestimonialText(e.target.value)} placeholder="Escreva um depoimento..." />
+                <button type="submit">Enviar depoimento</button>
+              </form>
+            )}
             <ul style={{ listStyle: 'none', marginTop: 12 }}>
               {testimonials.map((t) => (
                 <li key={t.id} style={{ background: '#f4f4f4', padding: '10px', borderRadius: '8px', marginBottom: '10px', fontSize: '12px' }}>
                   <strong>{t.senderId}:</strong> "{t.text}"
+                  {!t.isPublic && loggedUser === targetUser && (
+                    <div style={{ marginTop: 8 }}>
+                      <button type="button" onClick={() => fetch('/api/testimonials', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'approve', id: t.id }) }).then((r) => r.json()).then((res) => setTestimonials(testimonials.map((item) => item.id === t.id ? res.data : item)))}>Aprovar</button>
+                      <button type="button" onClick={() => fetch('/api/testimonials', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'hide', id: t.id }) }).then(() => setTestimonials(testimonials.filter((item) => item.id !== t.id)))} style={{ marginLeft: 8 }}>Recusar</button>
+                    </div>
+                  )}
+                  {!t.isPublic && loggedUser === targetUser && <p style={{ color: '#888', marginTop: 4 }}>Aguardando aprovacao</p>}
                 </li>
               ))}
             </ul>
@@ -197,6 +212,24 @@ export default function ProfilePage(props) {
               {isFollowing ? 'Desfazer amizade' : pendingRequest ? 'Pedido enviado' : 'Adicionar Amigo'}
             </button>
             <a href={`/mensagens?with=${targetUser}`} style={{ display: 'block', textAlign: 'center', marginTop: 8 }}>Enviar recado privado</a>
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              fetch('/api/gifts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ receiverId: targetUser, giftType, message: giftMessage }),
+              }).then((r) => r.json()).then((res) => {
+                if (res.data) setGifts([res.data, ...gifts])
+                setGiftMessage('')
+              })
+            }} style={{ marginTop: 12 }}>
+              <p style={{ fontSize: 12, marginBottom: 6 }}>Mandar um presente</p>
+              <select value={giftType} onChange={(e) => setGiftType(e.target.value)}>
+                {GIFT_CATALOG.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
+              </select>
+              <input value={giftMessage} onChange={(e) => setGiftMessage(e.target.value)} placeholder="Mensagem (opcional)" />
+              <button type="submit">Presentear</button>
+            </form>
           </>
         )}
       </Box>
@@ -216,9 +249,17 @@ export default function ProfilePage(props) {
       {gifts.length > 0 && (
         <Box>
           <h2 className="subTitle">Presentes ({gifts.length})</h2>
-          {gifts.slice(0, 8).map((g) => (
-            <p key={g.id}>{g.giftType} de <a href={`/profile/${g.senderId}`}>{g.senderId}</a></p>
-          ))}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {gifts.slice(0, 8).map((g) => {
+              const meta = giftMeta(g.giftType)
+              return (
+                <div key={g.id} style={{ background: meta.color, color: '#fff', padding: '8px 12px', borderRadius: 8, minWidth: 90 }}>
+                  <strong>{meta.label}</strong>
+                  <p style={{ fontSize: 11 }}>de <a href={`/profile/${g.senderId}`} style={{ color: '#fff' }}>{g.senderId}</a></p>
+                </div>
+              )
+            })}
+          </div>
         </Box>
       )}
       {photos.length > 0 && (

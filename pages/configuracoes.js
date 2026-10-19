@@ -40,7 +40,7 @@ export default function ConfiguracoesPage(props) {
     <Layout githubUser={props.githubUser}>
       <Box>
         <h1 className="title">Configuracoes do seu perfil</h1>
-        <p>So o GitHub verificado nesta sessao pode alterar estes dados.</p>
+        <p>So o GitHub verificado nesta sessao pode alterar estes dados. Humor e status aparecem no inicio e no mural.</p>
         <form onSubmit={(e) => {
           e.preventDefault()
           fetch('/api/settings', {

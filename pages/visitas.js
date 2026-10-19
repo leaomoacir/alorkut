@@ -12,6 +12,7 @@ export default function VisitasPage(props) {
     <Layout githubUser={props.githubUser}>
       <Box>
         <h1 className="title">Quem visitou seu perfil</h1>
+        <p>Visitantes recentes. Visitas repetidas em menos de 30 minutos nao entopem a lista.</p>
         {visits.length === 0 && <p>Ninguem passou por aqui ainda.</p>}
         <ul style={{ listStyle: 'none' }}>
           {visits.map((v) => (

@@ -9,6 +9,7 @@ export default async function searchHandler(request, response) {
   if (!q) {
     return response.status(200).json({ data: { users: [], communities: [], topics: [] } })
   }
+  const qLower = q.toLowerCase()
 
   const [users, communities, topics, follows] = await Promise.all([
     prisma.user.findMany({
@@ -51,8 +52,23 @@ export default async function searchHandler(request, response) {
     extraUsers.add(f.followingId)
   })
   extraUsers.forEach((name) => {
-    if (name.toLowerCase().includes(q.toLowerCase()) && !users.some((u) => u.username === name)) {
+    if (name.toLowerCase().includes(qLower) && !users.some((u) => u.username === name)) {
       users.push({ username: name, displayName: name })
+    }
+  })
+
+  const allUsers = await prisma.user.findMany({ take: 80 })
+  allUsers.forEach((u) => {
+    const blob = `${u.username} ${u.displayName || ''} ${u.bio || ''} ${u.location || ''}`.toLowerCase()
+    if (blob.includes(qLower) && !users.some((item) => item.username === u.username)) {
+      users.push(u)
+    }
+  })
+  const allCommunities = await prisma.community.findMany({ take: 80 })
+  allCommunities.forEach((c) => {
+    const blob = `${c.title} ${c.category || ''} ${c.description || ''}`.toLowerCase()
+    if (blob.includes(qLower) && !communities.some((item) => item.id === c.id)) {
+      communities.push(c)
     }
   })
 

@@ -6,7 +6,7 @@ function CustomizedInput(propriedades) {
       aria-label={propriedades['aria-label'] || propriedades.ariaLabel}
       type="text"
       value={propriedades.value}
-      onChange={(e) => propriedades.onValueChange(e.target.value)}
+      onChange={(e) => propriedades.onValueChange && propriedades.onValueChange(e.target.value)}
       required={propriedades.required !== false}
     />
   )

@@ -7,7 +7,15 @@ export default async function giftsHandler(request, response) {
   if (!me) return
 
   if (request.method === 'GET') {
-    const { userId } = request.query
+    const { userId, sent } = request.query
+    if (sent) {
+      const gifts = await prisma.gift.findMany({
+        where: { senderId: me },
+        orderBy: { createdAt: 'desc' },
+        take: 40,
+      })
+      return response.status(200).json({ data: gifts })
+    }
     const target = userId || me
     const gifts = await prisma.gift.findMany({
       where: { receiverId: target },

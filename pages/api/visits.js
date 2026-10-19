@@ -17,6 +17,13 @@ export default async function visitsHandler(request, response) {
   if (request.method === 'POST') {
     const { visitedId } = request.body
     if (!visitedId || visitedId === me) return response.status(200).json({ skipped: true })
+    const recent = await prisma.profileVisit.findFirst({
+      where: { visitorId: me, visitedId },
+      orderBy: { createdAt: 'desc' },
+    })
+    if (recent && Date.now() - new Date(recent.createdAt).getTime() < 30 * 60 * 1000) {
+      return response.status(200).json({ data: recent, skipped: true })
+    }
     const visit = await prisma.profileVisit.create({ data: { visitorId: me, visitedId } })
     return response.status(201).json({ data: visit })
   }

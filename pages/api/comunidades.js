@@ -51,6 +51,12 @@ export default async function recebedorDaRequests(request, response) {
     if (!comunidade || comunidade.creatorId !== me) {
       return response.status(403).json({ error: 'Not authorized or not found' })
     }
+    const topics = await prisma.communityTopic.findMany({ where: { communityId: id } })
+    const topicIds = topics.map((t) => t.id)
+    if (topicIds.length) {
+      await prisma.communityPost.deleteMany({ where: { topicId: { in: topicIds } } })
+      await prisma.communityTopic.deleteMany({ where: { communityId: id } })
+    }
     await prisma.communityMember.deleteMany({ where: { communityId: id } })
     await prisma.community.delete({ where: { id } })
     return response.status(200).json({ success: true })

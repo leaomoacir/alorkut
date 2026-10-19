@@ -12,7 +12,8 @@ export default function RecadosPage(props) {
     <Layout githubUser={props.githubUser}>
       <Box>
         <h1 className="title">Meus recados</h1>
-        {scraps.length === 0 && <p>Nenhum recado no mural ainda.</p>}
+        <p>Tudo que a galera deixou no seu mural. Responda no perfil de quem escreveu.</p>
+        {scraps.length === 0 && <p>Nenhum recado no mural ainda. Peca para um amigo passar no seu perfil.</p>}
         {scraps.map((scrap) => (
           <div key={scrap.id} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: '1px solid #eee' }}>
             <img src={`https://github.com/${scrap.senderId}.png`} alt={scrap.senderId} style={{ width: 48, height: 48, borderRadius: 8 }} />

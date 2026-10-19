@@ -20,6 +20,7 @@ export default function VideosPage(props) {
     <Layout githubUser={props.githubUser}>
       <Box>
         <h1 className="title">Videos</h1>
+        <p>Compartilhe um clip do YouTube no estilo Orkut Videos.</p>
         <form onSubmit={(e) => {
           e.preventDefault()
           fetch('/api/videos', {
@@ -33,6 +34,11 @@ export default function VideosPage(props) {
           <button type="submit">Publicar video</button>
         </form>
       </Box>
+      {videos.length === 0 && (
+        <Box>
+          <p>Nenhum video ainda. Cole uma URL do YouTube acima.</p>
+        </Box>
+      )}
       {videos.map((v) => (
         <Box key={v.id}>
           <h2 className="subTitle">{v.title} por {v.ownerId}</h2>

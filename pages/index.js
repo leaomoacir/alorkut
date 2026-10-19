@@ -39,7 +39,8 @@ export default function Home(props) {
   const [comunidadesUrl, setComunidadesUrl] = React.useState('')
   const [feed, setFeed] = React.useState([])
   const [followUserInput, setFollowUserInput] = React.useState('')
-  const [stats, setStats] = React.useState({ scraps: 0, friends: 0 })
+  const [stats, setStats] = React.useState({ scraps: 0, friends: 0, communities: 0, photos: 0, videos: 0 })
+  const [scrapText, setScrapText] = React.useState('')
 
   React.useEffect(() => {
     fetch(`https://api.github.com/users/${githubUser}`)
@@ -71,7 +72,14 @@ export default function Home(props) {
     fetch('/api/comunidades').then((r) => r.json()).then((res) => setComunidades(res.data?.allCommunities || []))
     fetch(`/api/feed?userId=${githubUser}`).then((r) => r.json()).then((res) => setFeed(res.data || []))
     fetch(`/api/profile?username=${githubUser}`).then((r) => r.json()).then((res) => {
-      if (res.stats) setStats(res.stats)
+      if (res.stats) setStats((prev) => ({ ...prev, ...res.stats }))
+    })
+    fetch(`/api/albums?ownerId=${githubUser}`).then((r) => r.json()).then((res) => {
+      const photos = (res.data || []).reduce((acc, album) => acc + (album.count || 0), 0)
+      setStats((prev) => ({ ...prev, photos }))
+    })
+    fetch('/api/videos').then((r) => r.json()).then((res) => {
+      setStats((prev) => ({ ...prev, videos: (res.data || []).filter((v) => v.ownerId === githubUser).length }))
     })
   }, [githubUser])
 
@@ -101,8 +109,29 @@ export default function Home(props) {
       )}
     >
       <Box>
-        <h1 className="title">Bem vindo(a), {githubUser}!</h1>
-        <OrkutNostalgicIconSet recados={stats.scraps} fas={stats.friends} fotos={0} />
+        <h1 className="title">Bem-vindo(a), {githubUser}!</h1>
+        <p style={{ fontSize: 13, color: '#5A5A5A', marginBottom: 8 }}>
+          Humor: {props.mood || 'feliz'}{props.statusText ? ` - ${props.statusText}` : ''}
+        </p>
+        <OrkutNostalgicIconSet recados={stats.scraps} fas={stats.friends} fotos={stats.photos} videos={stats.videos} mensagens={0} />
+      </Box>
+      <Box>
+        <h2 className="subTitle">Deixe um recado no seu mural</h2>
+        <form onSubmit={(e) => {
+          e.preventDefault()
+          if (!scrapText.trim()) return
+          fetch('/api/scraps', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ receiverId: githubUser, text: scrapText }),
+          }).then(() => {
+            setScrapText('')
+            fetch(`/api/feed?userId=${githubUser}`).then((r) => r.json()).then((res) => setFeed(res.data || []))
+          })
+        }}>
+          <CustomizedInput placeholder="O que voce esta pensando?" name="scrap" aria-label="Recado" value={scrapText} onValueChange={setScrapText} />
+          <button type="submit">Postar recado</button>
+        </form>
       </Box>
       <Box>
         <h2 className="subTitle">Crie sua comunidade</h2>
@@ -120,10 +149,15 @@ export default function Home(props) {
               title: dadosDoForm.get('title'),
               imageUrl: dadosDoForm.get('image'),
               paginaUrl: dadosDoForm.get('url') || '/',
-              creatorId: githubUser,
+              description: dadosDoForm.get('description') || '',
+              category: dadosDoForm.get('category') || 'Geral',
             }),
           }).then(async (response) => {
             const dados = await response.json()
+            if (!response.ok || !dados.registroCriado) {
+              alert(dados.error || 'Nao foi possivel criar a comunidade')
+              return
+            }
             setComunidades([dados.registroCriado, ...comunidades])
             setComunidadesTitle('')
             setComunidadesImage('')
@@ -135,6 +169,15 @@ export default function Home(props) {
             <CustomizedInput placeholder="URL da imagem da capa" name="image" aria-label="URL da imagem" value={comunidadesImage} onValueChange={setComunidadesImage} required={false} />
             <CustomizedInput placeholder="URL do site" name="url" aria-label="URL do site" value={comunidadesUrl} onValueChange={setComunidadesUrl} required={false} />
           </div>
+          <input name="description" placeholder="Descricao da comunidade" aria-label="Descricao" style={{ width: '100%', padding: 8, marginBottom: 8 }} />
+          <select name="category" defaultValue="Geral" style={{ width: '100%', padding: 8, marginBottom: 8 }}>
+            <option>Geral</option>
+            <option>Humor</option>
+            <option>Tecnologia</option>
+            <option>Educacao</option>
+            <option>Social</option>
+            <option>Musica</option>
+          </select>
           <button type="submit">Criar comunidade</button>
         </form>
       </Box>

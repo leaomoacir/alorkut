@@ -30,6 +30,7 @@ export default function MensagensPage(props) {
     <Layout githubUser={props.githubUser}>
       <Box>
         <h1 className="title">Mensagens</h1>
+        <p>Recado privado, so entre voces dois. Digite o usuario GitHub para abrir o chat.</p>
         <form onSubmit={(e) => {
           e.preventDefault()
           if (!target) return

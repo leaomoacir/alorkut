@@ -98,6 +98,7 @@ export default function CommunityForumPage(props) {
         <Box>
           <img src={community.imageUrl} alt={community.title} style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }} />
           <h1 className="title">{community.title}</h1>
+          <p style={{ fontSize: 12, color: '#666' }}>{community.category || 'Geral'} | dono: {community.creatorId}</p>
           <p>{community.description || 'Uma comunidade do Orkut Revival.'}</p>
           <button onClick={toggleJoin} style={{ margin: '12px 0', background: joined ? '#eee' : '#2E7BB4', color: joined ? '#333' : '#fff', border: 0, padding: '8px 16px', borderRadius: 8 }}>
             {joined ? 'Sair da comunidade' : 'Participar da comunidade'}

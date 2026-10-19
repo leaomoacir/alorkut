@@ -17,7 +17,8 @@ export default function BuscaPage(props) {
   return (
     <Layout githubUser={props.githubUser}>
       <Box>
-        <h1 className="title">Busca: {q}</h1>
+        <h1 className="title">Busca: {q || 'digite na barra acima'}</h1>
+        <p>Pessoas, comunidades e topicos. A mesma busca do cabecalho classico.</p>
         <h2 className="subTitle">Pessoas</h2>
         {results.users.length === 0 && <p>Nenhum usuario encontrado.</p>}
         {results.users.map((u) => (
