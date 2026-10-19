@@ -68,7 +68,8 @@ export function AlurakutMenu({ githubUser }) {
             { name: 'Inicio', slug: '/' },
             { name: 'Amigos', slug: '/amigos' },
             { name: 'Comunidades', slug: '/comunidades' },
-            { name: 'Recados', slug: '/mensagens' },
+            { name: 'Recados', slug: '/recados' },
+            { name: 'Atualizacoes', slug: '/atualizacoes' },
             { name: 'Apps', slug: '/apps' },
           ].map((menuItem) => (
             <Link key={`key__${menuItem.name}`} href={menuItem.slug}>
@@ -291,9 +292,17 @@ export function AlurakutProfileSidebarMenuDefault({ githubUser }) {
           <img src={`${BASE_URL}/icons/sun.svg`} alt="Icone Comunidades" />
           Comunidades
         </a>
+        <a href="/recados">
+          <img src={`${BASE_URL}/icons/book.svg`} alt="Icone Recados" />
+          Recados
+        </a>
         <a href="/mensagens">
           <img src={`${BASE_URL}/icons/email.svg`} alt="Icone Mensagens" />
           Mensagens
+        </a>
+        <a href="/fas">
+          <img src={`${BASE_URL}/icons/star.svg`} alt="Icone Fas" />
+          Fas
         </a>
         <a href="/apps">
           <img src={`${BASE_URL}/icons/plus.svg`} alt="Icone Apps" />

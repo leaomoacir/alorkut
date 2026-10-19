@@ -12,7 +12,8 @@ export default function EventosPage(props) {
   return (
     <Layout githubUser={props.githubUser}>
       <Box>
-        <h1 className="title">Eventos</h1>
+        <h1 className="title">Eventos da galera</h1>
+        <p>Marque um encontro da comunidade, um cafezinho ou aquela call nostálgica.</p>
         <form onSubmit={(e) => {
           e.preventDefault()
           fetch('/api/events', {
@@ -33,11 +34,17 @@ export default function EventosPage(props) {
           <h2 className="subTitle">{event.title}</h2>
           <p>{event.description}</p>
           <p>{event.place} | {event.happensAt} | {event.going} confirmados</p>
+          <p style={{ fontSize: 12 }}>por <a href={`/profile/${event.creatorId}`}>{event.creatorId}</a></p>
           <button onClick={() => fetch('/api/events', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'rsvp', eventId: event.id, status: 'yes' }),
           }).then(load)}>Eu vou</button>
+          <button style={{ marginLeft: 8, background: '#eee', color: '#333' }} onClick={() => fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'rsvp', eventId: event.id, status: 'maybe' }),
+          }).then(load)}>Talvez</button>
         </Box>
       ))}
     </Layout>

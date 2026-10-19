@@ -8,18 +8,29 @@ datasource db {
 }
 
 model User {
-  username     String   @id
+  username     String    @id
   displayName  String?
-  bio          String   @default("Ola, sou um desenvolvedor entusiasta!")
-  location     String   @default("")
-  relationship String   @default("Solteiro(a)")
-  birthday     String   @default("")
-  theme        String   @default("classic")
-  profileColor String   @default("#D9E6F6")
-  mood         String   @default("feliz")
-  statusText   String   @default("")
-  verified     Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  bio          String    @default("Ola, sou um desenvolvedor entusiasta!")
+  location     String    @default("")
+  relationship String    @default("Solteiro(a)")
+  birthday     String    @default("")
+  theme        String    @default("classic")
+  profileColor String    @default("#D9E6F6")
+  mood         String    @default("feliz")
+  statusText   String    @default("")
+  verified     Boolean   @default(false)
+  whoAmI       String    @default("")
+  lookingFor   String    @default("")
+  interests    String    @default("")
+  movies       String    @default("")
+  music        String    @default("")
+  books        String    @default("")
+  kids         String    @default("")
+  smoking      String    @default("")
+  drinking     String    @default("")
+  privacy      String    @default("public")
+  lastSeen     DateTime?
+  createdAt    DateTime  @default(now())
 }
 
 model LoginChallenge {
@@ -55,6 +66,7 @@ model Scrap {
   senderId   String
   receiverId String
   text       String
+  parentId   String?
   createdAt  DateTime @default(now())
 }
 
@@ -227,4 +239,39 @@ model EventRsvp {
   createdAt DateTime @default(now())
 
   @@unique([eventId, userId])
+}
+
+model PhotoComment {
+  id        String   @id @default(uuid())
+  photoId   String
+  authorId  String
+  text      String
+  createdAt DateTime @default(now())
+}
+
+model Fan {
+  id        String   @id @default(uuid())
+  fanId     String
+  starId    String
+  createdAt DateTime @default(now())
+
+  @@unique([fanId, starId])
+}
+
+model Crush {
+  id        String   @id @default(uuid())
+  fromId    String
+  toId      String
+  createdAt DateTime @default(now())
+
+  @@unique([fromId, toId])
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
 }

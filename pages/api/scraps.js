@@ -17,12 +17,12 @@ export default async function scrapsHandler(request, response) {
   if (request.method === 'POST') {
     const me = await requireApiUser(request, response)
     if (!me) return
-    const { receiverId, text } = request.body
+    const { receiverId, text, parentId } = request.body
     if (!receiverId || !text) {
       return response.status(400).json({ error: 'Missing required fields' })
     }
     const newScrap = await prisma.scrap.create({
-      data: { senderId: me, receiverId, text },
+      data: { senderId: me, receiverId, text, parentId: parentId || null },
     })
     await logActivity({
       actorId: me,

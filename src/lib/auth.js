@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import nookies from 'nookies'
 import prisma from './prisma'
+import { touchLastSeen } from './privacy'
 
 const SECRET = process.env.JWT_SECRET || 'orkut-revival-dev-secret'
 const COOKIE = 'USER_TOKEN'
@@ -63,6 +64,7 @@ export async function withAuth(context) {
     }
   }
   const dbUser = await prisma.user.findUnique({ where: { username: user.githubUser } }).catch(() => null)
+  await touchLastSeen(user.githubUser)
   return {
     props: {
       githubUser: user.githubUser,

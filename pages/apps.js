@@ -12,6 +12,10 @@ const APPS = [
   { href: '/visitas', title: 'Visitantes', text: 'Veja quem passou no perfil.' },
   { href: '/recados', title: 'Recados', text: 'Leia o mural de scraps.' },
   { href: '/mensagens', title: 'Mensagens', text: 'Chat privado entre amigos.' },
+  { href: '/fas', title: 'Fas', text: 'Veja quem te admira.' },
+  { href: '/crush', title: 'Crush', text: 'Marque e descubra se e reciproco.' },
+  { href: '/depoimentos', title: 'Depoimentos', text: 'Aprove o que falaram de voce.' },
+  { href: '/atualizacoes', title: 'Atualizacoes', text: 'Feed completo dos amigos.' },
 ]
 
 export default function AppsPage(props) {
@@ -19,9 +23,15 @@ export default function AppsPage(props) {
     <Layout githubUser={props.githubUser}>
       <Box>
         <h1 className="title">Aplicativos do Orkut</h1>
-        {APPS.map((app) => (
-          <p key={app.href}><a href={app.href}><strong>{app.title}</strong></a> - {app.text}</p>
-        ))}
+        <p>Os miniaplicativos da rede: quizzes, presentes, eventos, videos e o mural.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginTop: 16 }}>
+          {APPS.map((app) => (
+            <a key={app.href} href={app.href} style={{ display: 'block', background: '#f4f4f4', padding: 16, borderRadius: 8, textDecoration: 'none' }}>
+              <strong>{app.title}</strong>
+              <p style={{ color: '#555', marginTop: 4 }}>{app.text}</p>
+            </a>
+          ))}
+        </div>
       </Box>
     </Layout>
   )

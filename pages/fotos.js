@@ -12,6 +12,9 @@ export default function FotosPage(props) {
   const [imageUrl, setImageUrl] = React.useState('')
   const [caption, setCaption] = React.useState('')
   const [albumId, setAlbumId] = React.useState('')
+  const [commentPhoto, setCommentPhoto] = React.useState(null)
+  const [comments, setComments] = React.useState([])
+  const [commentText, setCommentText] = React.useState('')
 
   const load = () => {
     fetch(`/api/albums?ownerId=${owner}`).then((r) => r.json()).then((res) => {
@@ -63,7 +66,10 @@ export default function FotosPage(props) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {(album.photos || []).map((p) => (
                 <div key={p.id}>
-                  <img src={p.imageUrl} alt={p.caption || album.title} style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8 }} />
+                  <img src={p.imageUrl} alt={p.caption || album.title} style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => {
+                    setCommentPhoto(p)
+                    fetch(`/api/photo-comments?photoId=${p.id}`).then((r) => r.json()).then((res) => setComments(res.data || []))
+                  }} />
                   {p.caption && <small>{p.caption}</small>}
                 </div>
               ))}
@@ -71,6 +77,29 @@ export default function FotosPage(props) {
           </div>
         ))}
         {albums.length === 0 && <p>Nenhum album ainda.</p>}
+        {commentPhoto && (
+          <div style={{ marginTop: 24 }}>
+            <h2 className="subTitle">Comentarios da foto</h2>
+            <img src={commentPhoto.imageUrl} alt={commentPhoto.caption || 'foto'} style={{ maxHeight: 240, borderRadius: 8, marginBottom: 8 }} />
+            {comments.map((c) => (
+              <p key={c.id}><a href={`/profile/${c.authorId}`}>{c.authorId}</a>: {c.text}</p>
+            ))}
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              fetch('/api/photo-comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photoId: commentPhoto.id, text: commentText }),
+              }).then((r) => r.json()).then((res) => {
+                setComments([...comments, res.data])
+                setCommentText('')
+              })
+            }}>
+              <input value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Comentar esta foto" required />
+              <button type="submit">Comentar</button>
+            </form>
+          </div>
+        )}
       </Box>
     </Layout>
   )

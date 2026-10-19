@@ -69,6 +69,12 @@ export function formatActivity(item) {
       return `${actor} criou o evento ${target}`
     case 'friend_request':
       return `${actor} pediu amizade para ${target}`
+    case 'status':
+      return `${actor} atualizou o humor: ${extra || target}`
+    case 'fan':
+      return `${actor} virou fa de ${target}`
+    case 'crush':
+      return `${actor} tem um crush em ${target}`
     default:
       return `${actor} fez uma atualizacao`
   }

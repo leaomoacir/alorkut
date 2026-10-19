@@ -7,8 +7,10 @@ export default function SobrePage(props) {
     <Layout githubUser={props.githubUser}>
       <Box>
         <h1 className="title">Sobre o Orkut Revival</h1>
-        <p>Recados, comunidades, depoimentos, selos, mensagens e provas de posse no GitHub.</p>
-        <p>O login exige que voce controle a conta: codigo na bio/gist ou Personal Access Token. Sem isso ninguem edita o perfil de outra pessoa.</p>
+        <p>Uma homenagem ao Orkut de 2004: recados no mural, comunidades, depoimentos, selos Confiavel/Legal/Sexy, presentes, eventos e aquele feed de atualizacoes.</p>
+        <p>O login exige prova de posse da conta GitHub (codigo na bio/gist ou Personal Access Token). Sem isso ninguem entra no seu perfil para editar.</p>
+        <p>Stack: Next.js, Prisma e SQLite. Temas classico, MSN, dark e matrix.</p>
+        <p><a href="/apps">Ver aplicativos</a> | <a href="/comunidades">Comunidades</a> | <a href="/configuracoes">Seu perfil</a></p>
       </Box>
     </Layout>
   )
