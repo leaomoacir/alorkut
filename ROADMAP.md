@@ -17,6 +17,10 @@ Documento vivo da experiencia completa do Orkut Revival.
 - Pedidos de amizade (ida e volta)
 - Mensagens privadas, visitas, videos, presentes e eventos
 - Depoimentos com aprovacao do dono do perfil
+- Fas, crush (match reciproco) e bloqueio
+- Recados com resposta, comentarios em fotos
+- Perfil classico: interesses, filmes, musicas, livros, privacidade
+- Atualizacoes, lastSeen e smilies no mural
 
 ## Stack
 

@@ -12,6 +12,10 @@ const APPS = [
   { href: '/visitas', title: 'Visitantes', text: 'Veja quem passou no perfil.' },
   { href: '/recados', title: 'Recados', text: 'Leia o mural de scraps.' },
   { href: '/mensagens', title: 'Mensagens', text: 'Chat privado entre amigos.' },
+  { href: '/fas', title: 'Fas', text: 'Veja quem te admira.' },
+  { href: '/crush', title: 'Crush', text: 'Marque e descubra se e reciproco.' },
+  { href: '/depoimentos', title: 'Depoimentos', text: 'Aprove o que falaram de voce.' },
+  { href: '/atualizacoes', title: 'Atualizacoes', text: 'Feed completo dos amigos.' },
 ]
 
 export default function AppsPage(props) {

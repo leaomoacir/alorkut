@@ -22,6 +22,16 @@ export default async function settingsHandler(request, response) {
       profileColor,
       mood,
       statusText,
+      whoAmI,
+      lookingFor,
+      interests,
+      movies,
+      music,
+      books,
+      kids,
+      smoking,
+      drinking,
+      privacy,
     } = request.body
     const previous = await prisma.user.findUnique({ where: { username: me } })
     const user = await prisma.user.update({
@@ -36,6 +46,16 @@ export default async function settingsHandler(request, response) {
         profileColor: profileColor || '#D9E6F6',
         mood: mood || 'feliz',
         statusText: statusText || '',
+        whoAmI: whoAmI || '',
+        lookingFor: lookingFor || '',
+        interests: interests || '',
+        movies: movies || '',
+        music: music || '',
+        books: books || '',
+        kids: kids || '',
+        smoking: smoking || '',
+        drinking: drinking || '',
+        privacy: privacy || 'public',
       },
     })
     if (previous && (previous.mood !== user.mood || previous.statusText !== user.statusText)) {

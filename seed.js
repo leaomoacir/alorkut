@@ -165,6 +165,22 @@ async function main() {
     })
   }
 
+  await prisma.fan.upsert({
+    where: { fanId_starId: { fanId: 'peas', starId: 'omariosouto' } },
+    update: {},
+    create: { fanId: 'peas', starId: 'omariosouto' },
+  })
+  await prisma.fan.upsert({
+    where: { fanId_starId: { fanId: 'juunegreiros', starId: 'omariosouto' } },
+    update: {},
+    create: { fanId: 'juunegreiros', starId: 'omariosouto' },
+  })
+  await prisma.crush.upsert({
+    where: { fromId_toId: { fromId: 'peas', toId: 'omariosouto' } },
+    update: {},
+    create: { fromId: 'peas', toId: 'omariosouto' },
+  })
+
   const activityExists = await prisma.activity.findFirst({ where: { actorId: 'omariosouto', type: 'community_create' } })
   if (!activityExists) {
     await prisma.activity.create({
