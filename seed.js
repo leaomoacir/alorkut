@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 async function main() {
   const users = [
-    { username: 'omariosouto', displayName: 'Mario Souto', bio: 'Dev. de software e criador de conteudo. Um cafe e um recado, por favor.', location: 'Sao Paulo', mood: 'animado', statusText: 'gravando aula', relationship: 'Namorando', verified: true, theme: 'classic' },
+    { username: 'omariosouto', displayName: 'Mario Souto', bio: 'Dev. de software e criador de conteudo. Um cafe e um recado, por favor.', location: 'Sao Paulo', mood: 'animado', statusText: 'gravando aula', relationship: 'Namorando', verified: true, theme: 'classic', birthday: '19/10', whoAmI: 'Professor e youtuber', lookingFor: 'Amizade e comunidades', interests: 'React, CSS, recados', movies: 'Matrix', music: 'Lo-fi e MPB', books: 'Clean Code' },
     { username: 'peas', displayName: 'Paulo Silveira', bio: 'Aprendizado continuo. Eu falo sozinho e com a comunidade.', location: 'Sao Paulo', mood: 'feliz', statusText: 'na Alura', relationship: 'Casado(a)', verified: true, theme: 'msn' },
     { username: 'juunegreiros', displayName: 'Juliana Negreiros', bio: 'Front-end, acessibilidade e comunidade.', location: 'Brasil', mood: 'feliz', statusText: 'lendo recados', relationship: 'Solteiro(a)', verified: true, theme: 'classic' },
     { username: 'gaearon', displayName: 'Dan Abramov', bio: 'Working on React. Also I miss Orkut a little.', location: 'Internet', mood: 'ocupado', statusText: 'writing docs', relationship: 'E complicado', verified: true, theme: 'dark' },

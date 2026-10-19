@@ -39,8 +39,10 @@ export default function Home(props) {
   const [comunidadesUrl, setComunidadesUrl] = React.useState('')
   const [feed, setFeed] = React.useState([])
   const [followUserInput, setFollowUserInput] = React.useState('')
-  const [stats, setStats] = React.useState({ scraps: 0, friends: 0, communities: 0, photos: 0, videos: 0 })
+  const [stats, setStats] = React.useState({ scraps: 0, friends: 0, communities: 0, photos: 0, videos: 0, fans: 0 })
   const [scrapText, setScrapText] = React.useState('')
+  const [birthdays, setBirthdays] = React.useState({ today: [], upcoming: [] })
+  const [online, setOnline] = React.useState([])
 
   React.useEffect(() => {
     fetch(`https://api.github.com/users/${githubUser}`)
@@ -81,6 +83,10 @@ export default function Home(props) {
     fetch('/api/videos').then((r) => r.json()).then((res) => {
       setStats((prev) => ({ ...prev, videos: (res.data || []).filter((v) => v.ownerId === githubUser).length }))
     })
+    fetch(`/api/fans?userId=${githubUser}`).then((r) => r.json()).then((res) => {
+      setStats((prev) => ({ ...prev, fans: res.data?.count || 0 }))
+    })
+    fetch('/api/birthdays').then((r) => r.json()).then((res) => setBirthdays(res.data || { today: [], upcoming: [] }))
   }, [githubUser])
 
   return (
@@ -103,6 +109,16 @@ export default function Home(props) {
             <hr />
             <p><a className="boxLink" href="/comunidades">Ver todos</a></p>
           </ProfileRelationsBoxWrapper>
+          <Box>
+            <h2 className="smallTitle">Aniversarios</h2>
+            {birthdays.today?.length === 0 && <p style={{ fontSize: 12 }}>Nenhum amigo faz aniversario hoje.</p>}
+            {birthdays.today?.map((u) => (
+              <p key={u.username} style={{ fontSize: 12 }}><a href={`/profile/${u.username}`}>{u.displayName || u.username}</a> faz aniversario hoje!</p>
+            ))}
+            {birthdays.upcoming?.length > 0 && (
+              <p style={{ fontSize: 12, marginTop: 8 }}>Proximos: {birthdays.upcoming.map((u) => u.username).join(', ')}</p>
+            )}
+          </Box>
           <ProfileRelationsBox title="Seguidores" items={seguidores} total={numerosSegui.followers} />
           <ProfileRelationsBox title="Seguindo" items={seguindo} total={seguindo.length} />
         </>
@@ -113,7 +129,7 @@ export default function Home(props) {
         <p style={{ fontSize: 13, color: '#5A5A5A', marginBottom: 8 }}>
           Humor: {props.mood || 'feliz'}{props.statusText ? ` - ${props.statusText}` : ''}
         </p>
-        <OrkutNostalgicIconSet recados={stats.scraps} fas={stats.friends} fotos={stats.photos} videos={stats.videos} mensagens={0} />
+        <OrkutNostalgicIconSet recados={stats.scraps} fas={stats.fans} fotos={stats.photos} videos={stats.videos} mensagens={0} />
       </Box>
       <Box>
         <h2 className="subTitle">Deixe um recado no seu mural</h2>
@@ -129,6 +145,7 @@ export default function Home(props) {
             fetch(`/api/feed?userId=${githubUser}`).then((r) => r.json()).then((res) => setFeed(res.data || []))
           })
         }}>
+          <p style={{ fontSize: 12, marginBottom: 8 }}>Dica: use :) :D &lt;3 nos recados.</p>
           <CustomizedInput placeholder="O que voce esta pensando?" name="scrap" aria-label="Recado" value={scrapText} onValueChange={setScrapText} />
           <button type="submit">Postar recado</button>
         </form>

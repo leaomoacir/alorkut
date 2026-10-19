@@ -4,6 +4,7 @@ import Layout from '../../src/components/Layout'
 import Box from '../../src/components/Box'
 import { ProfileRelationsBoxWrapper } from '../../src/components/ProfileRelations'
 import { GIFT_CATALOG, giftMeta } from '../../src/lib/gifts'
+import ScrapText, { SmileyBar } from '../../src/components/ScrapText'
 
 function BadgeIcon({ type, count, hasVoted, onToggle }) {
   const icons = { trusty: 'C', cool: 'L', sexy: 'S' }
@@ -327,6 +328,7 @@ export default function ProfilePage(props) {
             setReplyTo(null)
           })
         }}>
+          <SmileyBar onPick={(code) => setScrapText((prev) => `${prev} ${code}`)} />
           <textarea value={scrapText} onChange={(e) => setScrapText(e.target.value)} placeholder={replyTo ? 'Respondendo um recado...' : 'Deixe um recado... use :) :D <3'} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #CE007E', marginBottom: '8px', minHeight: '80px' }} />
           {replyTo && <button type="button" onClick={() => setReplyTo(null)} style={{ marginRight: 8, background: '#eee', color: '#333' }}>Cancelar resposta</button>}
           <button type="submit">Postar Scrap</button>
@@ -338,7 +340,7 @@ export default function ProfilePage(props) {
               <div>
                 <strong><a href={`/profile/${scrap.senderId}`}>{scrap.senderId}</a></strong>
                 <small> {new Date(scrap.createdAt).toLocaleString()}</small>
-                <p>{scrap.text}</p>
+                <ScrapText text={scrap.text} />
                 <button type="button" onClick={() => setReplyTo(scrap.id)} style={{ background: 'transparent', color: '#2E7BB4', border: 0, padding: 0 }}>Responder</button>
                 {scraps.filter((r) => r.parentId === scrap.id).map((reply) => (
                   <div key={reply.id} style={{ marginTop: 8, paddingLeft: 8, borderLeft: '2px solid #CE007E' }}>
