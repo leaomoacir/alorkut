@@ -87,6 +87,7 @@ export default function Home(props) {
       setStats((prev) => ({ ...prev, fans: res.data?.count || 0 }))
     })
     fetch('/api/birthdays').then((r) => r.json()).then((res) => setBirthdays(res.data || { today: [], upcoming: [] }))
+    fetch('/api/online').then((r) => r.json()).then((res) => setOnline(res.data || []))
   }, [githubUser])
 
   return (
@@ -109,6 +110,13 @@ export default function Home(props) {
             <hr />
             <p><a className="boxLink" href="/comunidades">Ver todos</a></p>
           </ProfileRelationsBoxWrapper>
+          <Box>
+            <h2 className="smallTitle">Amigos online</h2>
+            {online.length === 0 && <p style={{ fontSize: 12 }}>Ninguem da sua lista esta online agora.</p>}
+            {online.map((u) => (
+              <p key={u.username} style={{ fontSize: 12 }}><a href={`/profile/${u.username}`}>{u.displayName || u.username}</a></p>
+            ))}
+          </Box>
           <Box>
             <h2 className="smallTitle">Aniversarios</h2>
             {birthdays.today?.length === 0 && <p style={{ fontSize: 12 }}>Nenhum amigo faz aniversario hoje.</p>}
