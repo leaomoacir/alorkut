@@ -1,7 +1,8 @@
 import styled from 'styled-components';
 
 const Box = styled.div`
-  background: #FFFFFF;
+  background: ${({ theme }) => theme.boxBg || '#FFFFFF'};
+  color: ${({ theme }) => theme.text || '#333333'};
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 10px;

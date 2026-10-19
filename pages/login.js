@@ -1,85 +1,159 @@
-import React from 'react';
-import IndexPage from '../src/components/IndexPage';
-import { useRouter } from 'next/router';
-import nookies from 'nookies';
+import React from 'react'
+import IndexPage from '../src/components/IndexPage'
+import { useRouter } from 'next/router'
 
 export default function LoginScreen() {
-    const router = useRouter();
-    const [githubUser, setGithubUser] = React.useState('');
-    
-    return (
-        <>
-            <IndexPage />
-            <main style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)', minHeight: '100vh' }}>
-                <div className="loginScreen" style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', padding: '20px' }}>
-                    <section className="logoArea">
-                        <img src="https://alurakut.vercel.app/logo.svg" alt="Logo Alurakut" style={{ filter: 'drop-shadow(0 4px 6px rgba(206, 0, 126, 0.2))' }} />
-                        <p style={{ color: '#555' }}><strong>Conecte-se</strong> aos seus amigos e familiares usando recados e mensagens instantâneas</p>
-                        <p style={{ color: '#555' }}><strong>Conheça</strong> novas pessoas através de amigos de seus amigos e comunidades</p>
-                        <p style={{ color: '#555' }}><strong>Compartilhe</strong> seus vídeos, fotos e paixões em um só lugar</p>
-                    </section>
+  const router = useRouter()
+  const [githubUser, setGithubUser] = React.useState('')
+  const [githubToken, setGithubToken] = React.useState('')
+  const [error, setError] = React.useState('')
+  const [loading, setLoading] = React.useState(false)
+  const [challenge, setChallenge] = React.useState(null)
+  const [mode, setMode] = React.useState('challenge')
 
-                    <section className="formArea">
-                        <form className="box" style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} onSubmit={(infosDoEvento) => {
-                            infosDoEvento.preventDefault();
-                            
-                            fetch('https://alurakut.vercel.app/api/login', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ githubUser: githubUser })
-                            })
-                            .then(async (respostaDoServer) => {
-                                const dadosDaResposta = await respostaDoServer.json()
-                                const token = dadosDaResposta.token;
-                                nookies.set(null, 'USER_TOKEN', token, {
-                                    path: '/',
-                                    maxAge: 86400 * 7
-                                })
-                                router.push('/')
-                            })
-                        }}>
-                            <p style={{ fontSize: '18px', color: '#CE007E', marginBottom: '16px' }}>
-                                Acesse agora mesmo com seu usuário do <strong>GitHub</strong>!
-                            </p>
-                            <input 
-                                required
-                                placeholder="Usuário" 
-                                value={githubUser}
-                                onChange={(evento) => {
-                                    setGithubUser(evento.target.value)
-                                }}
-                                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #CE007E', marginBottom: '16px' }}
-                            /> 
-                            <button type="submit" aria-label="Login" style={{ width: '100%', background: '#CE007E', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'background 0.3s' }}
-                                onMouseOver={(e) => e.target.style.background = '#a80066'}
-                                onMouseOut={(e) => e.target.style.background = '#CE007E'}
-                            >
-                                Login
-                            </button>
-                        </form>
+  const startChallenge = (event) => {
+    event.preventDefault()
+    setError('')
+    if (!githubUser.trim()) {
+      setError('Digite o usuario do GitHub que voce controla.')
+      return
+    }
+    setLoading(true)
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ step: 'start', githubUser: githubUser.trim() }),
+    })
+      .then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Nao foi possivel iniciar o login')
+        setChallenge(data.data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }
 
-                        <footer className="box" style={{ marginTop: '16px', textAlign: 'center' }}>
-                            <p>
-                                Ainda não é membro? <br />
-                                <a href="/login" style={{ color: '#0969DA', textDecoration: 'none', fontWeight: 'bold' }}>
-                                    ENTRAR JÁ
-                                </a>
-                            </p>
-                        </footer>
-                    </section>
+  const verifyChallenge = () => {
+    setError('')
+    setLoading(true)
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ step: 'verify', githubUser: githubUser.trim(), code: challenge.code }),
+    })
+      .then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Nao foi possivel verificar')
+        router.push('/')
+      })
+      .catch((err) => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }
 
-                    <footer className="footerArea" style={{ marginTop: '24px', textAlign: 'center', fontSize: '12px', color: '#888' }}>
-                        <p>
-                            ©2026 OrkutRevival - 
-                            <a href="/" title="Sobre o Alurakut" style={{ color: '#0969DA' }}> Sobre</a> -
-                            <a href="/" style={{ color: '#0969DA' }}> Centro de segurança</a> - 
-                            <a href="/" style={{ color: '#0969DA' }}> Privacidade</a>
-                        </p>
-                    </footer>
+  const loginWithToken = (event) => {
+    event.preventDefault()
+    setError('')
+    setLoading(true)
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ step: 'token', githubToken }),
+    })
+      .then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Token invalido')
+        router.push('/')
+      })
+      .catch((err) => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }
+
+  return (
+    <>
+      <IndexPage />
+      <main style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #cfe8fc 0%, #f7d6ea 100%)', minHeight: '100vh' }}>
+        <div className="loginScreen" style={{ background: 'rgba(255, 255, 255, 0.92)', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '20px' }}>
+          <section className="logoArea">
+            <img src="https://alurakut.vercel.app/logo.svg" alt="Logo Orkut" />
+            <p><strong>Prova de posse:</strong> so entra quem controla o GitHub</p>
+            <p>Cole o codigo na bio ou em um gist publico. Sem isso, ninguem edita o seu perfil.</p>
+            <p>Depois de logado, recados, comunidades e configuracoes ficam no seu nome.</p>
+          </section>
+          <section className="formArea">
+            <div className="box">
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <button type="button" onClick={() => setMode('challenge')} style={{ background: mode === 'challenge' ? '#CE007E' : '#eee', color: mode === 'challenge' ? '#fff' : '#333', border: 0, padding: '8px 12px', borderRadius: 8 }}>Codigo na bio</button>
+                <button type="button" onClick={() => setMode('token')} style={{ background: mode === 'token' ? '#CE007E' : '#eee', color: mode === 'token' ? '#fff' : '#333', border: 0, padding: '8px 12px', borderRadius: 8 }}>Token GitHub</button>
+              </div>
+              {mode === 'challenge' && !challenge && (
+                <form onSubmit={startChallenge}>
+                  <p style={{ fontSize: '16px', color: '#CE007E', marginBottom: '16px' }}>
+                    Informe o usuario do <strong>GitHub que e seu</strong>
+                  </p>
+                  <input
+                    required
+                    placeholder="ex: omariosouto"
+                    value={githubUser}
+                    onChange={(evento) => setGithubUser(evento.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #CE007E', marginBottom: '8px' }}
+                  />
+                  {error && <p style={{ color: '#c0392b', fontSize: '13px', marginBottom: '12px' }}>{error}</p>}
+                  <button type="submit" disabled={loading} style={{ width: '100%', background: '#CE007E', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
+                    {loading ? 'Gerando codigo...' : 'Gerar codigo de posse'}
+                  </button>
+                </form>
+              )}
+              {mode === 'challenge' && challenge && (
+                <div>
+                  <p style={{ marginBottom: 8 }}>Usuario: <strong>{challenge.username}</strong></p>
+                  <p style={{ marginBottom: 8 }}>Cole este codigo na bio do GitHub ou crie um gist publico:</p>
+                  <code style={{ display: 'block', background: '#111', color: '#0f0', padding: 12, borderRadius: 8, marginBottom: 12 }}>{challenge.code}</code>
+                  <ol style={{ textAlign: 'left', fontSize: 13, marginBottom: 12 }}>
+                    {(challenge.instructions || []).map((item) => <li key={item}>{item}</li>)}
+                  </ol>
+                  {error && <p style={{ color: '#c0392b', fontSize: '13px', marginBottom: '12px' }}>{error}</p>}
+                  <button type="button" onClick={verifyChallenge} disabled={loading} style={{ width: '100%', background: '#2E7BB4', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
+                    {loading ? 'Verificando...' : 'Ja coloquei. Verificar posse'}
+                  </button>
+                  <button type="button" onClick={() => { setChallenge(null); setError('') }} style={{ width: '100%', marginTop: 8, background: 'transparent', border: 0, color: '#2E7BB4' }}>
+                    Gerar outro codigo
+                  </button>
                 </div>
-            </main>
-        </>
-    )
+              )}
+              {mode === 'token' && (
+                <form onSubmit={loginWithToken}>
+                  <p style={{ fontSize: 14, marginBottom: 12 }}>Cole um Personal Access Token com leitura do perfil. Nao salvamos o token, so usamos uma vez para identificar voce.</p>
+                  <input
+                    required
+                    type="password"
+                    placeholder="ghp_..."
+                    value={githubToken}
+                    onChange={(e) => setGithubToken(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #CE007E', marginBottom: '8px' }}
+                  />
+                  {error && <p style={{ color: '#c0392b', fontSize: '13px', marginBottom: '12px' }}>{error}</p>}
+                  <button type="submit" disabled={loading} style={{ width: '100%', background: '#CE007E', color: 'white', padding: '12px', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
+                    {loading ? 'Entrando...' : 'Entrar com token'}
+                  </button>
+                </form>
+              )}
+            </div>
+            <footer className="box" style={{ marginTop: '16px', textAlign: 'center' }}>
+              <p>Nao da mais para entrar digitando o nick de outra pessoa.</p>
+            </footer>
+          </section>
+          <footer className="footerArea">
+            <p>2026 OrkutRevival - Sobre - Centro de seguranca - Privacidade</p>
+          </footer>
+        </div>
+      </main>
+    </>
+  )
 }
