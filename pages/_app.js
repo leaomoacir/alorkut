@@ -1,48 +1,49 @@
-import { createGlobalStyle, ThemeProvider } from 'styled-components';
-import { AlurakutStyles } from '../src/lib/alurakutCommons';
+import React from 'react'
+import { createGlobalStyle, ThemeProvider } from 'styled-components'
+import { AlurakutStyles } from '../src/lib/alurakutCommons'
+import { ThemeStateProvider, useAppTheme } from '../src/lib/ThemeContext'
 
 const GlobalStyle = createGlobalStyle`
-  /* Reset CSS */
-
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
   }
-
   body {
-    font-family: sans-serif;
-    background: linear-gradient(180deg, rgba(4,3,106,1) 10%, rgba(29,60,253,1) 50%, rgba(69,180,252,1) 100%);
+    font-family: Tahoma, Geneva, Verdana, sans-serif;
+    background: ${({ theme }) => theme.bodyBg};
+    color: ${({ theme }) => theme.text};
   }
-
   #__next {
     display: flex;
     min-height: 100vh;
     flex-direction: column;
   }
-
   img {
     max-width: 100%;
     height: auto;
     display: block;
   }
-
+  a {
+    color: ${({ theme }) => theme.primary};
+  }
   ${AlurakutStyles}
 `
 
-const theme = {
-  colors: {
-    primary: '#0070f3',
-  },
+function ThemedApp({ Component, pageProps }) {
+  const { theme } = useAppTheme()
+  return (
+    <ThemeProvider theme={theme}>
+      <GlobalStyle />
+      <Component {...pageProps} />
+    </ThemeProvider>
+  )
 }
 
 export default function App({ Component, pageProps }) {
   return (
-    <>
-      <GlobalStyle />
-      <ThemeProvider theme={theme}>
-        <Component {...pageProps} />
-      </ThemeProvider>
-    </>
+    <ThemeStateProvider initialTheme={pageProps.userTheme || 'classic'}>
+      <ThemedApp Component={Component} pageProps={pageProps} />
+    </ThemeStateProvider>
   )
 }
